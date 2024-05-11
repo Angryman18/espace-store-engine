@@ -1,10 +1,23 @@
 import express from "express";
+import connect from "./conect.js";
+import AuthMiddleware from "./middleware/auth.js";
+import morgan from "morgan";
+import { config } from "dotenv";
+config();
+import Router from "./router/index.js";
 
 const app = express();
 
+const isDev = process.env.ENV === "dev";
 
-app.get('/', (req, res) => {
-    res.status(200).json({message: "Server is running."})
-})
+app.use(express.json());
+app.use(morgan(isDev ? "dev" : "combined"));
 
-app.listen(5000, () => console.log("Server Running at 5000"));
+app.use("/v1", Router);
+app.get("/", AuthMiddleware, (req, res) => {
+  res.status(200).json({ message: "Server is running." });
+});
+
+connect().then(() => {
+  app.listen(5000, () => console.log("Server Running at 5000"));
+});
