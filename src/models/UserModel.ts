@@ -1,13 +1,14 @@
 import { model, Schema } from "mongoose";
+import { TUserModel } from "../types/index.js";
 
-const UserModel = new Schema({
+const UserModel = new Schema<TUserModel>({
   id: {
     type: String,
     required: true,
   },
   email: {
     type: String,
-    required: true
+    required: true,
   },
   fullname: {
     type: String,
@@ -17,33 +18,19 @@ const UserModel = new Schema({
     type: String,
     required: true,
   },
-  resource: {
-    type: Schema.Types.ObjectId,
-    ref: "Resource",
-    required: true,
-  },
-  space: {
-    type: String,
-    required: true,
-  },
-  usedSpace: {
-    type: String,
-    required: true,
-  },
   avatar: {
     type: String,
     required: false,
   },
   provider: {
     type: String,
-    required: true,
+    required: false,
   },
-  session: [
-    {
-      type: [Schema.Types.ObjectId],
-      ref: "Session",
-    },
-  ],
+  profile: {
+    type: Schema.Types.ObjectId || null,
+    default: null,
+    ref: "Profile",
+  },
 });
 
-export default model('User', UserModel)
+export default model("User", UserModel);

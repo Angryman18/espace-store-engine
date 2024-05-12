@@ -8,7 +8,7 @@ const ContainerModel = new Schema({
   folders: {
     type: [Schema.Types.ObjectId],
     ref: "Folders",
-    required: true
+    required: true,
   },
   fileCount: {
     type: Number,
@@ -21,8 +21,17 @@ const ContainerModel = new Schema({
   uid: {
     type: Schema.Types.ObjectId,
     ref: "User",
+    required: false,
   },
 });
 
+const NosOfFolder = ContainerModel.virtual("noOfFolders");
+const NosOfFiles = ContainerModel.virtual("noOfFiles");
+NosOfFiles.get(function () {
+  return this.files.length;
+});
+NosOfFolder.get(function () {
+  return this.folders.length;
+});
 
-export default model('Container', ContainerModel)
+export default model("Container", ContainerModel);
