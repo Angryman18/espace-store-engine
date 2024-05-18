@@ -12,15 +12,17 @@ import ResourceModel from "../models/ResourceModel.js";
 import SessionModel from "../models/SessionModel.js";
 import ProfileModel from "../models/ProfileModel.js";
 import decodeJWT from "../helpers/jwt.js";
-import { FlattenMaps, Schema, Types } from "mongoose";
+import { Types } from "mongoose";
+import { setCookie } from "../helpers/set-cookie.js";
 
-export const handleCreateUser = wrapper(async (req: Request, res: Response) => {
-  const token = req.cookies?.token;
+export const handleSignIn = wrapper(async (req: Request, res: Response) => {
+  const token = req.body?.token;
   if (!token) throw new CustomError("No Token provided", 400);
   const getUserInfo = await request.post<TAuthResp>(VERIFY_AUTH, { token });
   const isUserExist = await UserModel.findOne({ email: getUserInfo.data.email }).lean();
   if (isUserExist) {
-    return res.status(200).json({ user: "Already Exists" });
+    setCookie(res, { token });
+    return res.status(200).json({ ...isUserExist });
   } else {
     const userCreate = await UserModel.create({
       fullname: getUserInfo.data.fullname,
@@ -31,7 +33,7 @@ export const handleCreateUser = wrapper(async (req: Request, res: Response) => {
       provider: "N/A",
       profile: null,
     });
-    res.cookie("token", token, { sameSite: "strict", maxAge: 3600 * 24 * 7 * 1000 });
+    setCookie(res, { token });
     return res.status(200).json({ ...userCreate.toObject() });
   }
 });
