@@ -3,7 +3,6 @@ import wrapper from "../helpers/wrapper.js";
 import CustomError from "../helpers/Error.js";
 import request from "../helpers/request.js";
 import { VERIFY_AUTH } from "../endpoints/endpoint.js";
-import { AxiosResponse } from "axios";
 import UserModel from "../models/UserModel.js";
 import { TAuthResp, TReq, TUserModel } from "../types/index.js";
 import ContainerModel from "../models/ContainerModel.js";
@@ -22,9 +21,9 @@ export const handleSignIn = wrapper(async (req: Request, res: Response) => {
   const isUserExist = await UserModel.findOne({ email: getUserInfo.data.email }).lean();
   if (isUserExist) {
     setCookie(res, { token });
-    return res.status(200).json({ ...isUserExist });
+    return res.status(200).json({ success: "Login Success" });
   } else {
-    const userCreate = await UserModel.create({
+    await UserModel.create({
       fullname: getUserInfo.data.fullname,
       email: getUserInfo.data.email,
       avatar: getUserInfo.data.avatar,
@@ -34,7 +33,7 @@ export const handleSignIn = wrapper(async (req: Request, res: Response) => {
       profile: null,
     });
     setCookie(res, { token });
-    return res.status(200).json({ ...userCreate.toObject() });
+    return res.status(200).json({ success: "Login Success" });
   }
 });
 
