@@ -13,13 +13,18 @@ import ProfileModel from "../models/ProfileModel.js";
 import decodeJWT from "../helpers/jwt.js";
 import { Types } from "mongoose";
 import { setCookie } from "../helpers/set-cookie.js";
+import client from "../service/redisClient.js";
 
 export const handleSignIn = wrapper(async (req: Request, res: Response) => {
   const token = req.body?.token;
   if (!token) throw new CustomError("No Token provided", 400);
   const getUserInfo = await request.post<TAuthResp>(VERIFY_AUTH, { token });
-  const isUserExist = await UserModel.findOne({ email: getUserInfo.data.email }).lean();
-  if (isUserExist) {
+  
+  let user = await client.get(`user:${getUserInfo.data.username}`);
+  if (!user) {
+    user = await UserModel.findOne({ email: getUserInfo.data.email }).lean();
+  }
+  if (user) {
     setCookie(res, { token });
     return res.status(200).json({ success: "Login Success" });
   } else {
@@ -37,12 +42,14 @@ export const handleSignIn = wrapper(async (req: Request, res: Response) => {
   }
 });
 
-export const handleAuth = wrapper(async (req: TReq, res: Response) => {
+export const handleCreateProfile = wrapper(async (req: TReq, res: Response) => {
   try {
     const getData = decodeJWT(req.cookies?.token);
     const findUser = await UserModel.findOne({ username: getData.username }).lean();
-    const newUser = await createUserProfile(findUser!);
-    return res.status(200).json({ message: "Auth Success", data: newUser });
+    if (!findUser?.profile) {
+      const newUser = await createUserProfile(findUser!);
+      return res.status(201).json({ profileId: newUser?.profile });
+    } else return res.status(200).json({ profileId: findUser?.profile })
   } catch (err) {
     return res.status(400).json({ message: (err as Error).message ?? "Auth Failed" });
   }
