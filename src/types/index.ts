@@ -10,6 +10,7 @@ export type TAuthResp = {
 };
 
 export type TReq<T = any> = Request<{}, {}, T>;
+export type AuthRequest<T = any> = TReq<T> & { user: TUserModel };
 
 export type TUserModel = {
   id: string;
